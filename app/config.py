@@ -93,13 +93,12 @@ class Production(Development):
     DEBUG = False
     JWT_COOKIE_SECURE = True
     DB_HOST = "db"
-    DB_PORT = 5433
     DB_USER = getenv("POSTGRES_USER")
     DB_PASSWORD = getenv("POSTGRES_PASSWORD")
     DB_NAME = getenv("POSTGRES_DB")
-    SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
     REDIS_HOST = "redis"
-    REDIS_PORT = 6380
+    REDIS_PORT = 6379
     CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}"
     CELERY_BROKER_URL = CELERY_RESULT_BACKEND
 
