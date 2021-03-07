@@ -61,7 +61,7 @@ def read(**kwds):
     Read all data.
     """
 
-    by = kwds.get("email")
+    by = kwds.get("by")
     title = kwds.get("title")
     text = kwds.get("text")
     drafted = kwds.get("drafted")
