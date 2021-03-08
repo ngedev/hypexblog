@@ -3,7 +3,7 @@ services:
   app:
     restart: on-failure
     build: ./app/
-    environment: 
+    environment:
       ZEMFROG_ENV: "production"
     depends_on:
       - db

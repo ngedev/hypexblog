@@ -1,6 +1,7 @@
 from datetime import timedelta
 from os import getenv
 
+
 class Development(object):
     SECRET_KEY = "Your secret key!"
     DB_HOST = "localhost"
@@ -8,7 +9,9 @@ class Development(object):
     DB_USER = getenv("POSTGRES_USER")
     DB_PASSWORD = getenv("POSTGRES_PASSWORD")
     DB_NAME = getenv("POSTGRES_DB")
-    SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI = (
+        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = "JWT secret key!"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=7)
@@ -17,11 +20,7 @@ class Development(object):
     APISPEC_TITLE = "API Docs"
     APISPEC_SWAGGER_UI_URL = "/api/docs"
     APISPEC_SECURITY_DEFINITIONS = {
-        "Bearer": {
-            "type": "oauth2",
-            "flow": "password",
-            "tokenUrl": "/auth/jwt/login",
-        }
+        "Bearer": {"type": "oauth2", "flow": "password", "tokenUrl": "/auth/jwt/login"}
     }
     APISPEC_SECURITY_PARAMS = [{"Bearer": []}]
     DEBUG = True
@@ -34,7 +33,7 @@ class Development(object):
         "zemfrog.extensions.mail",
         "zemfrog.extensions.celery",
         "zemfrog.extensions.apispec",
-        "zemfrog.extensions.cors"
+        "zemfrog.extensions.cors",
     ]
     COMMANDS = [
         "zemfrog.commands.api",
@@ -52,7 +51,7 @@ class Development(object):
         "zemfrog.commands.secretkey",
         "zemfrog.commands.context",
         "zemfrog.commands.filter",
-        "zemfrog.commands.app"
+        "zemfrog.commands.app",
     ]
     BLUEPRINTS = ["auth"]
     STATICFILES = []
@@ -99,7 +98,9 @@ class Production(Development):
     DB_USER = getenv("POSTGRES_USER")
     DB_PASSWORD = getenv("POSTGRES_PASSWORD")
     DB_NAME = getenv("POSTGRES_DB")
-    SQLALCHEMY_DATABASE_URI = f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+    SQLALCHEMY_DATABASE_URI = (
+        f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+    )
     REDIS_HOST = "redis"
     REDIS_PORT = 6379
     CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}"

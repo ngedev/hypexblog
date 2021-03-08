@@ -1,5 +1,5 @@
 from zemfrog.decorators import http_code, authenticate
-from zemfrog.helper import db_add, db_commit, db_delete, db_update
+from zemfrog.helper import db_add, db_delete, db_update
 from zemfrog.models import DefaultResponseSchema
 from flask_apispec import marshal_with, use_kwargs
 from flask_jwt_extended import current_user
@@ -10,8 +10,10 @@ from models.Article import Article
 from models.Tag import Tag
 from models.user import User
 
+
 class TagSchema(ma.SQLAlchemyAutoSchema):
     name = fields.String()
+
 
 class CreateArticleSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -21,6 +23,7 @@ class CreateArticleSchema(ma.SQLAlchemyAutoSchema):
     image = fields.Url()
     tags = fields.List(fields.String())
 
+
 class ReadArticleSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Article
@@ -29,6 +32,7 @@ class ReadArticleSchema(ma.SQLAlchemyAutoSchema):
     tags = fields.List(fields.Nested(TagSchema()))
     created_at = fields.DateTime("%d-%m-%Y %H:%M:%S")
     updated_at = fields.DateTime("%d-%m-%Y %H:%M:%S")
+
 
 class UpdateArticleSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -40,9 +44,11 @@ class UpdateArticleSchema(ma.SQLAlchemyAutoSchema):
     drafted = fields.Boolean()
     tags = fields.List(fields.String())
 
+
 # class DeleteArticleSchema(ma.SQLAlchemyAutoSchema):
 #     class Meta:
 #         model = Article
+
 
 class LimitArticleSchema(ma.Schema):
     by = fields.Email()
@@ -82,12 +88,13 @@ def read(**kwds):
 
     if drafted:
         query = query.filter(Article.drafted == drafted)
-    
+
     if tags:
         query = query.filter(Article.tags.any(Tag.name.in_(tags)))
 
     data = query.offset(offset).limit(limit).all()
     return data
+
 
 @authenticate()
 @use_kwargs(CreateArticleSchema())
@@ -99,7 +106,9 @@ def create(**kwds):
     Add data.
     """
 
-    found = Article.query.filter_by(user_id=current_user.id, title=kwds["title"]).first()
+    found = Article.query.filter_by(
+        user_id=current_user.id, title=kwds["title"]
+    ).first()
     if not found:
         tags = []
         for t in kwds.get("tags", []):
@@ -122,10 +131,8 @@ def create(**kwds):
         status_code = 403
         message = "Data already exists."
 
-    return {
-        "code": status_code,
-        "message": message
-    }
+    return {"code": status_code, "message": message}
+
 
 @authenticate()
 @use_kwargs(UpdateArticleSchema())
@@ -158,10 +165,8 @@ def update(id, **kwds):
         status_code = 404
         message = "Data not found."
 
-    return {
-        "code": status_code,
-        "message": message
-    }
+    return {"code": status_code, "message": message}
+
 
 @authenticate()
 # @use_kwargs(DeleteArticleSchema())
@@ -183,10 +188,7 @@ def delete(id):
         status_code = 404
         message = "Data not found."
 
-    return {
-        "code": status_code,
-        "message": message
-    }
+    return {"code": status_code, "message": message}
 
 
 docs = {"tags": ["Article"]}
@@ -196,5 +198,5 @@ routes = [
     ("/create", create, ["POST"]),
     ("/read", read, ["GET"]),
     ("/update/<id>", update, ["PUT"]),
-    ("/delete/<id>", delete, ["DELETE"])
+    ("/delete/<id>", delete, ["DELETE"]),
 ]

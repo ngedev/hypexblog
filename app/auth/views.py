@@ -5,7 +5,13 @@ from jwt import DecodeError, ExpiredSignatureError
 from marshmallow import fields
 from werkzeug.security import generate_password_hash, check_password_hash
 from zemfrog.decorators import http_code, authenticate
-from zemfrog.helper import db_add, db_update, db_commit, get_mail_template, get_user_roles
+from zemfrog.helper import (
+    db_add,
+    db_update,
+    db_commit,
+    get_mail_template,
+    get_user_roles,
+)
 from zemfrog.models import (
     DefaultResponseSchema,
     LoginSchema,
@@ -50,6 +56,7 @@ def user_detail():
     email = get_raw_jwt().get("identity")
     user = User.query.filter_by(email=email).first()
     return user
+
 
 @use_kwargs(LoginSchema(), location="form")
 @marshal_with(DefaultResponseSchema, 404)
@@ -106,9 +113,7 @@ def register(**kwds):
                 )
                 db_add(user)
                 token = create_access_token(
-                    email,
-                    expires_delta=False,
-                    user_claims={"token_registration": True},
+                    email, expires_delta=False, user_claims={"token_registration": True}
                 )
                 msg = get_mail_template("register.html", token=token)
                 send_email.delay("Registration", html=msg, recipients=[email])
@@ -181,9 +186,7 @@ def request_password_reset(**kwds):
                 expires_delta=timedelta(hours=2),
                 user_claims={"token_password_reset": True},
             )
-            msg = get_mail_template(
-                "request_password_reset.html", token=token
-            )
+            msg = get_mail_template("request_password_reset.html", token=token)
             send_email.delay("Forgot password", html=msg, recipients=[email])
             log = Log(request_password_reset_at=datetime.utcnow())
             user.logs.append(log)

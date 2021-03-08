@@ -1,5 +1,4 @@
 import os
-import unicodedata
 
 from distutils.dir_util import remove_tree
 from hashlib import md5
@@ -56,5 +55,3 @@ def save_to(filename, buffer, email, outdir=None):
         fp.write(buffer)
 
     return output_file
-
-
