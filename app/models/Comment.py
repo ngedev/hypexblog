@@ -1,7 +1,8 @@
-from zemfrog.globals import db
 from datetime import datetime
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, UnicodeText
+
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, UnicodeText
 from sqlalchemy.orm import relationship
+from zemfrog.globals import db
 
 
 class Comment(db.Model):

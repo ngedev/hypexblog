@@ -1,7 +1,7 @@
-from zemfrog.globals import db
-from zemfrog.mixins import UserMixin, RoleMixin, PermissionMixin, LogMixin
 from sqlalchemy import Column, UnicodeText
 from sqlalchemy.orm import relationship
+from zemfrog.globals import db
+from zemfrog.mixins import LogMixin, PermissionMixin, RoleMixin, UserMixin
 
 
 class User(UserMixin, db.Model):

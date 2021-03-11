@@ -1,15 +1,16 @@
-from zemfrog.globals import db
 from datetime import datetime
+
 from sqlalchemy import (
-    Column,
-    Integer,
-    ForeignKey,
-    UnicodeText,
-    DateTime,
-    String,
     Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UnicodeText,
 )
 from sqlalchemy.orm import relationship
+from zemfrog.globals import db
 
 
 class Article(db.Model):

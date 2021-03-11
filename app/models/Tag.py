@@ -1,5 +1,5 @@
+from sqlalchemy import Column, ForeignKey, Integer, String
 from zemfrog.globals import db
-from sqlalchemy import Column, Integer, ForeignKey, String
 
 
 class Tag(db.Model):
