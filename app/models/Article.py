@@ -1,15 +1,16 @@
-from zemfrog.globals import db
 from datetime import datetime
+
 from sqlalchemy import (
-    Column,
-    Integer,
-    ForeignKey,
-    UnicodeText,
-    DateTime,
-    String,
     Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UnicodeText,
 )
 from sqlalchemy.orm import relationship
+from zemfrog.globals import db
 
 
 class Article(db.Model):
@@ -19,7 +20,7 @@ class Article(db.Model):
     slug = Column(String(255), nullable=False, unique=True)
     image = Column(UnicodeText)
     text = Column(UnicodeText)
-    drafted = Column(Boolean)
+    drafted = Column(Boolean, default=False)
     tags = relationship("Tag")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
