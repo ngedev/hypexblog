@@ -1,13 +1,14 @@
-from zemfrog.decorators import http_code, authenticate
-from zemfrog.helper import db_add, db_delete, db_update, db_commit
-from zemfrog.models import DefaultResponseSchema
 from flask_apispec import marshal_with, use_kwargs
 from flask_jwt_extended import current_user
 from marshmallow import fields
+from zemfrog.decorators import authenticate, http_code
 from zemfrog.globals import ma
+from zemfrog.helper import db_add, db_commit, db_delete, db_update
+from zemfrog.models import DefaultResponseSchema
+
 from apis.Article import ReadArticleSchema
-from models.Bookmark import Bookmark
 from models.Article import Article
+from models.Bookmark import Bookmark
 
 
 class CreateBookmarkSchema(ma.Schema):
@@ -29,6 +30,10 @@ class UpdateBookmarkSchema(ma.Schema):
 # class DeleteBookmarkSchema(ma.SQLAlchemyAutoSchema):
 #     class Meta:
 #         model = Bookmark
+
+
+class ArticleIDSchema(ma.Schema):
+    article_id = fields.Integer(required=True)
 
 
 class LimitBookmarkSchema(ma.Schema):
@@ -74,18 +79,17 @@ def create(**kwds):
 
     cols = {"user_id": current_user.id, "name": kwds["name"]}
     model = Bookmark.query.filter_by(**cols).first()
-    if not model:
+    if model:
+        for a in articles:
+            exist = model.articles.filter_by(id=a.id).first()
+            if not exist:
+                model.articles.append(a)
+        db_commit()
+
+    else:
         cols["articles"] = articles
         model = Bookmark(**cols)
         db_add(model)
-    else:
-        for a in articles:
-            a_id = a.id
-            exist = Article.query.filter_by(id=a_id, bookmark_id=model.id).first()
-            if not exist:
-                model.articles.append(a)
-
-        db_commit()
 
     return {"code": status_code, "message": message}
 
@@ -146,12 +150,31 @@ def read_article(id, **kwds):
     limit = kwds.get("limit")
     model = Bookmark.query.filter_by(id=id, user_id=current_user.id).first()
     if model:
-        articles = (
-            Article.query.filter_by(bookmark_id=id).offset(offset).limit(limit).all()
-        )
+        articles = model.articles.offset(offset).limit(limit).all()
         return articles
 
     return {"code": 404, "message": "Data not found."}
+
+
+@authenticate()
+@use_kwargs(ArticleIDSchema())
+@marshal_with(DefaultResponseSchema, 200)
+@marshal_with(DefaultResponseSchema, 404)
+@http_code
+def delete_article(id, **kwds):
+    model = Bookmark.query.filter_by(id=id, user_id=current_user.id).first()
+    status_code = 404
+    message = "Data not found."
+    if model:
+        article = model.articles.filter_by(id=kwds["article_id"]).first()
+        if article:
+            model.articles.remove(article)
+            db_commit()
+
+        status_code = 200
+        message = "Ok"
+
+    return {"code": status_code, "message": message}
 
 
 docs = {"tags": ["Bookmark"]}
@@ -163,4 +186,5 @@ routes = [
     ("/update/<id>", update, ["PUT"]),
     ("/delete/<id>", delete, ["DELETE"]),
     ("/read/article/<id>", read_article, ["GET"]),
+    ("/delete/article/<id>", delete_article, ["DELETE"]),
 ]

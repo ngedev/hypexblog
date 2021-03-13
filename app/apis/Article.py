@@ -1,5 +1,5 @@
 from flask_apispec import marshal_with, use_kwargs
-from flask_jwt_extended import current_user, jwt_optional
+from flask_jwt_extended import current_user
 from marshmallow import fields
 from slugify import slugify
 from zemfrog.decorators import authenticate, http_code
@@ -9,7 +9,6 @@ from zemfrog.models import DefaultResponseSchema
 
 from models.Article import Article
 from models.Tag import Tag
-from models.user import User
 
 
 class TagSchema(ma.SQLAlchemyAutoSchema):
@@ -28,7 +27,7 @@ class CreateArticleSchema(ma.SQLAlchemyAutoSchema):
 class ReadArticleSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Article
-        exclude = ("user_id",)
+        exclude = ("user_id", "drafted")
 
     tags = fields.List(fields.Nested(TagSchema()))
     created_at = fields.DateTime("%d-%m-%Y %H:%M:%S")
@@ -52,16 +51,52 @@ class UpdateArticleSchema(ma.SQLAlchemyAutoSchema):
 
 
 class LimitArticleSchema(ma.Schema):
-    by = fields.Email()
     title = fields.String()
     text = fields.String()
-    drafted = fields.Boolean()
     tags = fields.List(fields.String())
     offset = fields.Integer()
     limit = fields.Integer()
 
 
-@jwt_optional
+class MyReadArticleSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Article
+        exclude = ("user_id",)
+
+
+class MyLimitArticleSchema(LimitArticleSchema):
+    drafted = fields.Boolean()
+
+
+@authenticate()
+@use_kwargs(MyLimitArticleSchema(), location="query")
+@marshal_with(MyReadArticleSchema(many=True), 200)
+def me(**kwds):
+    """
+    Read all data.
+    """
+
+    title = kwds.get("title")
+    text = kwds.get("text")
+    tags = kwds.get("tags")
+    drafted = kwds.get("drafted")
+    offset = kwds.get("offset")
+    limit = kwds.get("limit")
+    query = Article.query.filter_by(user_id=current_user.id)
+    if title:
+        query = query.filter(Article.title.contains(title))
+
+    if text:
+        query = query.filter(Article.text.contains(text))
+
+    if tags:
+        query = query.filter(Article.tags.any(Tag.name.in_(tags)))
+
+    query = query.filter_by(drafted=drafted)
+    data = query.offset(offset).limit(limit).all()
+    return data
+
+
 @use_kwargs(LimitArticleSchema(), location="query")
 @marshal_with(ReadArticleSchema(many=True), 200)
 def read(**kwds):
@@ -69,29 +104,17 @@ def read(**kwds):
     Read all data.
     """
 
-    by = kwds.get("by")
     title = kwds.get("title")
     text = kwds.get("text")
-    drafted = kwds.get("drafted", False)
     tags = kwds.get("tags")
     offset = kwds.get("offset")
     limit = kwds.get("limit")
     query = Article.query
-    if by:
-        if current_user and current_user.email != by:
-            drafted = False
-
-        user = User.query.filter_by(email=by).first()
-        if user:
-            query = query.filter(Article.user_id == user.id)
-
     if title:
         query = query.filter(Article.title.contains(title))
 
     if text:
         query = query.filter(Article.text.contains(text))
-
-    query = query.filter(Article.drafted == drafted)
 
     if tags:
         query = query.filter(Article.tags.any(Tag.name.in_(tags)))
@@ -110,9 +133,7 @@ def create(**kwds):
     Add data.
     """
 
-    found = Article.query.filter_by(
-        user_id=current_user.id, title=kwds["title"]
-    ).first()
+    found = Article.query.filter_by(title=kwds["title"]).first()
     if not found:
         tags = []
         for t in kwds.get("tags", []):
@@ -203,4 +224,5 @@ routes = [
     ("/read", read, ["GET"]),
     ("/update/<id>", update, ["PUT"]),
     ("/delete/<id>", delete, ["DELETE"]),
+    ("/me", me, ["GET"]),
 ]
