@@ -21,6 +21,12 @@ class Article(db.Model):
     image = Column(UnicodeText)
     text = Column(UnicodeText)
     drafted = Column(Boolean, default=True)
-    tags = relationship("Tag")
+    tags = relationship("Tag", secondary="tag_links", lazy="dynamic")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
+
+
+class TagLinks(db.Model):
+    id = Column(Integer, primary_key=True)
+    article_id = Column(ForeignKey("article.id"))
+    tag_id = Column(ForeignKey("tag.id"))
