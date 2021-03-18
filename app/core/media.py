@@ -6,14 +6,15 @@ from werkzeug.datastructures import FileStorage
 from core.helpers import is_image_file, save_to
 
 
-def save_image_file(filestorage: FileStorage):
+def save_image_file(filestorage: FileStorage, outdir=None):
+    if outdir is None:
+        outdir = current_user.nickname
+
     filename = filestorage.filename
     buffer = filestorage.stream.read()
     if not is_image_file(filename, buffer):
         raise ValidationError("This is not an image file")
 
-    output_file = save_to(
-        filename, buffer, current_user.email, outdir=current_user.nickname
-    )
+    output_file = save_to(filename, buffer, current_user.email, outdir=outdir)
     url = url_for("media", filename=output_file)
     return url
