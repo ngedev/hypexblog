@@ -1,4 +1,4 @@
-zemfrog>=4.0.1
+zemfrog>=4.0.3
 redis
 gunicorn
 psycopg2-binary
