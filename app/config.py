@@ -52,7 +52,7 @@ class Development(object):
         "zemfrog.commands.context",
         "zemfrog.commands.filter",
         "zemfrog.commands.app",
-        "reset",
+        "zemfrog_resetdb",
         "user",
     ]
     BLUEPRINTS = ["auth"]
@@ -93,7 +93,7 @@ class Development(object):
         "zemfrog.loaders.jinja_filter",
         "zemfrog.loaders.multiapp",
     ]
-    REDIS_HOST = "redis"
+    REDIS_HOST = "localhost"
     REDIS_PORT = 6380
     CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}"
     CELERY_BROKER_URL = CELERY_RESULT_BACKEND
